@@ -6,10 +6,12 @@
 //
 
 import XCTest
+import Combine
 @testable import weather_app_ios
 
 class weather_app_iosTests: XCTestCase {
 
+    private var cancellables: Set<AnyCancellable> = []
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
@@ -31,6 +33,25 @@ class weather_app_iosTests: XCTestCase {
         self.measure {
             // Put the code you want to measure the time of here.
         }
+    }
+
+    func testWeatherAPI() {
+        let service = DataService()
+        let promise = self.expectation(description: "Successfully getting data from API.")
+
+        service.getWeatherData(lat: 23.11, long: 85.33)
+            .sink { data in
+                switch data {
+                case .failure(let error):
+                    XCTFail("Error: \(error.localizedDescription)")
+                    break
+                case .finished:
+                    promise.fulfill()
+                    break
+                }
+            } receiveValue: { _ in }
+            .store(in: &cancellables)
+        wait(for: [promise], timeout: 30)
     }
 
 }
